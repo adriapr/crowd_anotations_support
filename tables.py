@@ -91,9 +91,55 @@ def print_worker(df_res):
     print('Maximum results per worker: ' + str(res.max()))
     
     
+  
+def print_corr_table(df_random, df_median, df_best, df_truth, df_res_valid):
+    """Print all correlations"""
+    
+    # Without combining
+    df_res_truth = pd.merge(df_res_valid, df_truth, on='task_id', how='outer')
     
     
-#Print subject table
+    #Correlations for combining methods
+    has_crowd_result = df_median.loc[df_median['num_combined'] > 0]
+    df_truth = df_truth.loc[df_truth['task_id'].isin(has_crowd_result['task_id'])]
+   
+    df_random = pd.merge(df_random, df_truth, on='task_id', how='outer')    
+    df_median = pd.merge(df_median, df_truth, on='task_id', how='outer')
+    df_best = pd.merge(df_best, df_truth, on='task_id', how='outer')
+      
+       
+    parts = ['inner', 'outer', 'wap', 'wtr']
+ 
+    nmethods = 5
+    nparts = 4
+    
+    corr = np.zeros((nmethods,nparts*2))
+    
+    for (i, part) in enumerate(parts):
+           corr[0,i] = df_res_truth[part+'1'].corr(df_res_truth[part])
+           corr[1,i] = df_random[part+ '1'].corr(df_random[part+'_random'])
+           corr[2,i] = df_median[part+ '1'].corr(df_median[part+'_median'])
+           corr[3,i] = df_best[part+ '1'].corr(df_best[part+'_best'])
+           
+           corr[0,i+nparts] = df_res_truth[part+'2'].corr(df_res_truth[part])
+           corr[1,i+nparts] = df_random[part+ '2'].corr(df_random[part+'_random'])
+           corr[2,i+nparts] = df_median[part+ '2'].corr(df_median[part+'_median'])
+           corr[3,i+nparts] = df_best[part+ '2'].corr(df_best[part+'_best'])
+          
+           
+           corr[4,i+nparts] = df_truth[part+ '1'].corr(df_truth[part+'2'])
+ 
+    df = pd.DataFrame(corr)
+     
+    
+    print(df.to_latex(float_format="%.3f"))
+    df.to_excel("table2.xlsx", float_format="%.3f")
+   
+    
+    
+    
+    
+#Print subject table (Table 3)
 def print_subject(df_subject, df_task_combined, df_truth, combine_type):
           
     df_corr = crowdanalysis.get_subject_correlation(df_subject, df_task_combined, df_truth, combine_type)
@@ -105,9 +151,10 @@ def print_subject(df_subject, df_task_combined, df_truth, combine_type):
 
     print(df_select.to_latex(float_format="%.2f"))
     
-    
+    df_select.to_excel("table3.xlsx", float_format="%.2f")
    
-#Print correlations between subject characteristics
+   
+#Print correlations between subject characteristics (Table 4)
 def print_subject_correlation(df_subject, df_task_combined, df_truth, combine_type):
   
         
@@ -144,3 +191,11 @@ def print_subject_correlation(df_subject, df_task_combined, df_truth, combine_ty
     print('FEV: {:01.3f}, p={:01.3f}'.format(corr_fev, p_fev))
     print('Number airways: {:01.3f}, p={:01.3f}'.format(corr_n, p_n))
     
+
+def print_airway_generation(df_truth):
+    """Histogram of the airway generations"""   
+ 
+    counts = df_truth['generation'].value_counts()
+    total = np.sum(counts)
+    pct = counts/total*100
+    print(pct)

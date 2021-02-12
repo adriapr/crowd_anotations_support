@@ -194,3 +194,34 @@ def get_subject_correlation(df_subject, df_task_combined, df_truth, combine_type
     df_corr = pd.DataFrame(corr_list)
     
     return df_corr
+
+
+
+def get_cantsee(df_task, df_res_invalid,df_truth):
+    """Examine the airways that many indicate they cant see them."""
+   
+       
+    task_list = []
+
+    for task_id in df_task['task_id']:
+         
+        
+        task_results = df_res_invalid.loc[df_res_invalid['task_id'] == task_id] 
+                                          
+        
+        cantsee = task_results.loc[task_results['cantsee'] == True].count().to_numpy()[0]
+           
+        task_dict = {
+                    'task_id':      task_id,
+                    'cantsee':      cantsee,
+            
+                    }
+        task_list.append(task_dict)
+       
+
+    df_task = pd.DataFrame(task_list)
+    df_task = pd.merge(df_task, df_task, on='task_id', how='outer')    
+    df_task = pd.merge(df_task, df_truth, on='task_id', how='outer')    
+           
+    
+    return df_task

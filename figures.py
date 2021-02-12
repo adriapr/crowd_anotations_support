@@ -307,6 +307,38 @@ def plot_correlation_valid(df_task_combined, df_truth, combine_type):
 
 
 
+def hist_airway_generation(df_truth):
+    """Histogram of the airway generations"""   
+ 
     
+    fig = plt.figure()
+    df_truth.hist(column='generation')
+
+    
+    #Saves an empty figure
+    fig.tight_layout() 
+    fig.savefig(os.path.join(fig_path, 'hist_airway_generation.png'), format="png")
 
 
+
+def scatter_generation_valid(df_random, df_truth):
+
+    has_crowd_result = df_random.loc[df_random['num_combined'] > 0]
+    df_truth = df_truth.loc[df_truth['task_id'].isin(has_crowd_result['task_id'])]
+        
+    df_random = pd.merge(df_random, df_truth, on='task_id', how='outer')    
+
+    
+    fig = plt.figure()
+    plt.scatter(df_random['generation'],df_random['num_combined'], alpha=0.3) # transaprency makes easier to see dense areas
+    plt.xlabel('airway generation')
+    plt.ylabel('valid results')
+    
+    n_results = np.arange(0,21,2)
+    plt.yticks(n_results)
+    
+    #corr = df_random['generation'].corr(df_random['num_combined'])
+    #print(corr)
+    
+    
+  
